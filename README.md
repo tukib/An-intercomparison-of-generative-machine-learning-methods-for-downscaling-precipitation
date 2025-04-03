@@ -1,6 +1,6 @@
 # On-the-Extrapolation-of-Generative-Adversarial-Networks-for-downscaling-precipitation-extremes
 This repository contains the code for the Manuscript titled: "On the Extrapolation of Generative Adversarial Networks for downscaling precipitation extremes in warmer climates".
-The data required for this repository can be found at: https://doi.org/10.5281/zenodo.10889046
+The data required for this repository can be found at: https://doi.org/10.5281/zenodo.13755687
 
 Please contact me if you have any further questions about this work (Neelesh Rampal). 
 
