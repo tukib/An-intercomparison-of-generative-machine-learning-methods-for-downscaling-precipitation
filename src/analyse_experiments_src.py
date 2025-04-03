@@ -299,6 +299,22 @@ def predict_batch_residual(model, unet, latent_vectors, data_batch, orog, he, ve
         return  model([latent_vectors[0],  data_batch, orog, he, vegt, init_prediction], training=False) +intermediate#+
     else:
         return unet([latent_vectors[0],  data_batch, orog, he, vegt], training=False)
+    
+    
+@tf.function
+def predict_batch_residual_v280325(model, unet, latent_vectors, data_batch, orog, he, vegt, model_type):
+    if model_type =='GAN':
+        intermediate =unet([data_batch, orog], training=False)
+        #intermediate = apply_gaussian_blur(intermediate, size=7, sigma=1.5)
+        #max_value = tf.reduce_max(intermediate, axis=(1, 2, 3), keepdims=True)
+        #min_value = tf.reduce_min(intermediate, axis=(1, 2, 3), keepdims=True)
+        init_prediction = intermediate#(intermediate - min_value)/(max_value - min_value)
+        #print(intermediate)
+        #intermediate = tf.cast(tf.math.sqrt(tf.clip_by_value(intermediate, clip_value_min=0, clip_value_max=2500)), 'float32')
+        return  model([latent_vectors[0],  data_batch, orog, init_prediction], training=False) +intermediate#+
+    else:
+        return unet([data_batch, orog], training=False)
+    
 @tf.function
 def predict_batch22(model, unet, latent_vectors, data_batch, orog, he, vegt, model_type):
     if model_type =='GAN':
@@ -359,6 +375,50 @@ def predict_parallel_v2(model, unet, inputs, output_shape, batch_size,orog_vecto
 
     return output_shape
 
+def predict_parallel_resid_v280325(model, unet, inputs, output_shape, batch_size,orog_vector, he_vector, vegt_vector, model_type ='GAN'):
+    n_iterations = inputs.shape[0] // batch_size
+    remainder = inputs.shape[0] - n_iterations * batch_size
+
+    dset = []
+
+    with tqdm.tqdm(total=n_iterations, desc="Predicting", unit="batch") as pbar:
+        for i in range(n_iterations):
+            data_batch = inputs[i * batch_size: (i + 1) * batch_size]
+     
+            random_latent_vectors1 = tf.random.normal(shape=(1,) + tuple(model.inputs[0].shape[1:]))
+            #random_latent_vectors2 = tf.random.normal(shape=(1,) + tuple(model.inputs[1].shape[1:]))
+            random_latent_vectors1 = tf.repeat(random_latent_vectors1, repeats=batch_size, axis=0)
+            #random_latent_vectors2 = tf.repeat(random_latent_vectors2, repeats=batch_size, axis=0)
+            orog = expand_conditional_inputs(orog_vector, batch_size)
+            he =expand_conditional_inputs(he_vector, batch_size) 
+            vegt = expand_conditional_inputs(vegt_vector, batch_size)#ex, he_vector, vegt_vector
+
+            output = predict_batch_residual_v280325(model,unet,  [random_latent_vectors1], data_batch, orog, he, vegt, model_type)
+
+            dset+=(np.exp(output.numpy()[:,:,:,0])-0.001).tolist()#output.numpy()[:,:,:,0].tolist()##output.numpy()[:,:,:,0].tolist()
+            pbar.update(1)  # Update the progress bar
+
+    if remainder != 0:
+       
+        random_latent_vectors1 = tf.random.normal(shape=(1,) + tuple(model.inputs[0].shape[1:]))
+        #random_latent_vectors2 = tf.random.normal(shape=(1,) + tuple(model.inputs[1].shape[1:]))
+        random_latent_vectors1 = tf.repeat(random_latent_vectors1, repeats=batch_size, axis=0)
+        #random_latent_vectors2 = tf.repeat(random_latent_vectors2, repeats=batch_size, axis=0)
+        orog = expand_conditional_inputs(orog_vector, remainder)
+        he =expand_conditional_inputs(he_vector, remainder) 
+        vegt = expand_conditional_inputs(vegt_vector, remainder)
+
+        output = predict_batch_residual_v280325(model, unet, [random_latent_vectors1[:remainder]],
+                               inputs[inputs.shape[0] - remainder:],orog, he, vegt, model_type)
+       
+        dset+=(np.exp(output.numpy()[:,:,:,0])-0.001).tolist()#output.numpy()[:,:,:,0].tolist()#(np.exp(output.numpy()[:,:,:,0])-0.001).tolist()
+
+    #dset = np.array(dset)
+
+    # Assuming 'y' is defined somewhere
+    output_shape['pr'].values = dset
+
+    return output_shape
 
 
 def predict_parallel_resid(model, unet, inputs, output_shape, batch_size,orog_vector, he_vector, vegt_vector, model_type ='GAN'):

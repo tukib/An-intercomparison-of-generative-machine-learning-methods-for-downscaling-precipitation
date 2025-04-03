@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from dask.diagnostics import ProgressBar
-
+import tensorflow as tf
 
 def prepare_training_data(config, X, y, means, stds, match_index = True):
     """
@@ -68,3 +68,13 @@ def preprocess_input_data(config, match_index = True):
     stacked_X, y = prepare_training_data(config, X, y, means, stds, match_index = match_index)
 
     return stacked_X, y, vegt, orog, he
+
+def create_dataset(y, X, eval_times):
+    output_vars = {
+        'pr': tf.convert_to_tensor(y[:eval_times][::-1].values, dtype=tf.float32),
+        'pr_future': tf.convert_to_tensor(y[eval_times:2 * eval_times].values, dtype=tf.float32),
+}
+    X_tensor = {"X": tf.convert_to_tensor(X.values[:eval_times][::-1], dtype=tf.float32),
+                "X_future": tf.convert_to_tensor(X.values[eval_times:2 * eval_times], dtype=tf.float32),}
+
+    return tf.data.Dataset.from_tensor_slices((output_vars, X_tensor))

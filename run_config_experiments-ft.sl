@@ -4,7 +4,7 @@
 #SBATCH --time=23:59:00
 #SBATCH --cluster=maui_ancil
 #SBATCH --mem=250G
-#SBATCH --gpus-per-node=A100:2
+#SBATCH --gpus-per-node=A100:1
 #SBATCH --account=niwap03712
 #SBATCH --mail-user=neelesh.rampal@niwa.co.nz
 #SBATCH --mail-type=ALL
@@ -25,7 +25,7 @@ nvidia-smi
 # set the experiment name that we are implementing
 
 #/nesi/project/niwa00018/rampaln/envs/ml_env_v2/bin/python /nesi/project/niwa00018/ML_downscaling_CCAM/multi-variate-gan/train_unet_only.py
-/nesi/project/niwa00018/rampaln/envs/ml_env_v2/bin/python train_model_rain_future_updated.py $1
+/nesi/project/niwa00018/rampaln/envs/ml_env_v2/bin/python train_model_rain_future_updated-finetuned.py $1
 
 
 

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 
-def res_block_initial(x, num_filters, kernel_size, strides, name, sym_padding =True):
+def res_block_initial(x, num_filters, kernel_size, strides, name, sym_padding =False):
     """Residual Unet block layer for first layer
     In the residual unet the first residual block does not contain an
     initial batch normalization and activation so we create this separate
@@ -27,50 +27,25 @@ def res_block_initial(x, num_filters, kernel_size, strides, name, sym_padding =T
 
     if len(num_filters) == 1:
         num_filters = [num_filters[0], num_filters[0]]
-    if sym_padding:
-        x1 = SymmetricPadding2D(padding=[int((kernel_size-1)//2), int((kernel_size-1)//2)])(x)
-        x1 = tf.keras.layers.Conv2D(filters=num_filters[0],
-                                    kernel_size=kernel_size,
-                                    strides=strides[0],
-                                    padding='valid',
-                                    name=name + '_1')(x1)
-    else:
         x1 = tf.keras.layers.Conv2D(filters=num_filters[0],
                                     kernel_size=kernel_size,
                                     strides=strides[0],
                                     padding='same',
-                                    name=name + '_1')(x)
+                                    name=name + '_1', kernel_initializer ='he_normal')(x)
 
     x1 = tf.keras.layers.LeakyReLU(0.01)(x1)
-    if sym_padding:
-        x1 = SymmetricPadding2D(padding=[int((kernel_size - 1) // 2), int((kernel_size - 1) // 2)])(x1)
-        x1 = tf.keras.layers.Conv2D(filters=num_filters[1],
-                                    kernel_size=kernel_size,
-                                    strides=strides[1],
-                                    padding='valid',
-                                    name=name + '_2')(x1)
 
-        x = tf.keras.layers.Conv2D(filters=num_filters[-1],
-                                   kernel_size=1,
-                                   strides=1,
-                                   padding='valid',
-                                   name=name + '_shortcut')(x)
-    else:
-        x1 = tf.keras.layers.Conv2D(filters=num_filters[1],
-                                    kernel_size=kernel_size,
-                                    strides=strides[1],
-                                    padding='same',
-                                    name=name + '_2')(x1)
+    x1 = tf.keras.layers.Conv2D(filters=num_filters[1],
+                                kernel_size=kernel_size,
+                                strides=strides[1],
+                                padding='same',
+                                name=name + '_2', kernel_initializer ='he_normal')(x1)
 
-        x = tf.keras.layers.Conv2D(filters=num_filters[-1],
-                                   kernel_size=1,
-                                   strides=1,
-                                   padding='same',
-                                   name=name + '_shortcut')(x)
-        # if bn:
-        #
-        #     x = tf.keras.layers.BatchNormalization()(x)
-
+    x = tf.keras.layers.Conv2D(filters=num_filters[-1],
+                               kernel_size=1,
+                               strides=1,
+                               padding='same',
+                               name=name + '_shortcut', kernel_initializer ='he_normal')(x)
     x1 = tf.keras.layers.Add()([x, x1])
     x1 = tf.keras.layers.LeakyReLU(0.01)(x1)
     return x1
@@ -155,9 +130,9 @@ def upsample(x, target_size):
 
 def conv_block(x, filters, activation, kernel_size=(7, 7), strides=(2, 2), padding="same",
                use_bias=True, use_bn=True, use_dropout=True, drop_value=0.5):
-    x = SymmetricPadding2D(padding=[int((kernel_size[0] - 1) // 2), int((kernel_size[0] - 1) // 2)])(x)
+    #x = SymmetricPadding2D(padding=[int((kernel_size[0] - 1) // 2), int((kernel_size[0] - 1) // 2)])(x)
     x = layers.Conv2D(filters, kernel_size, strides=strides,
-                      padding='same', use_bias=use_bias)(x)
+                      padding='same', use_bias=use_bias, kernel_initializer ='he_normal')(x)
     x = tf.keras.layers.LeakyReLU(0.01)(x)
 
     return x
@@ -182,7 +157,7 @@ def decoder_noise(x, num_filters, kernel_size):
     return x, noise_inputs
 
 
-def down_block(x, filters, kernel_size, i =1, use_pool=True, method ='unet', sym_padding =True):
+def down_block(x, filters, kernel_size, i =1, use_pool=True, method ='unet', sym_padding =False):
 
     x = res_block_initial(x, [filters], kernel_size, strides=[1, 1],
                           name='decoder_layer_v2' + str(i),
@@ -193,7 +168,7 @@ def down_block(x, filters, kernel_size, i =1, use_pool=True, method ='unet', sym
         return x
 
 
-def up_block(x, y, filters, kernel_size, i =1, method ='unet', concat = True, sym_padding =True):
+def up_block(x, y, filters, kernel_size, i =1, method ='unet', concat = True, sym_padding =False):
     x = upsample(x, 2)
     if concat:
         x = tf.keras.layers.Concatenate(axis=-1)([x, y])

@@ -161,20 +161,21 @@ def get_discriminator_model_v1(high_resolution_fields_size,
     x_init_raw = conv_block(x, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
                             use_bn=use_bn, use_bias=use_bias,
                             use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
-    images_low_res = conv_block(img_input2, high_resolution_feature_channels[0], kernel_size=(3, 3), strides=(1, 1),
-                            use_bn=use_bn, use_bias=use_bias,
-                            use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
-    images_low_res = conv_block(images_low_res, high_resolution_feature_channels[1], kernel_size=(3, 3), strides=(1, 1),
-                            use_bn=use_bn, use_bias=use_bias,
-                            use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
-    images_low_res = tf.image.resize(images_low_res, [x_init_raw.shape[1], x_init_raw.shape[2]],
-                    method=tf.image.ResizeMethod.BILINEAR)
-    concat_outputs = tf.keras.layers.Concatenate(-1)([x_init_raw, images_low_res])
-    concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb1")
+#     images_low_res = conv_block(img_input2, high_resolution_feature_channels[0], kernel_size=(3, 3), strides=(1, 1),
+#                             use_bn=use_bn, use_bias=use_bias,
+#                             use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+#     images_low_res = conv_block(images_low_res, high_resolution_feature_channels[1], kernel_size=(3, 3), strides=(1, 1),
+#                             use_bn=use_bn, use_bias=use_bias,
+#                             use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+#     images_low_res = tf.image.resize(images_low_res, [x_init_raw.shape[1], x_init_raw.shape[2]],
+#                     method=tf.image.ResizeMethod.BILINEAR)
+    concat_outputs = x_init_raw#tf.keras.layers.Concatenate(-1)([x_init_raw, images_low_res])
+    concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 5, [1, 1], "output_convbbb1")
     x_init_raw = conv_block(concat_outputs, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
                             use_bn=use_bn, use_bias=use_bias,
                             use_dropout=use_dropout, drop_value=0.0,
                             activation=tf.keras.layers.LeakyReLU())
+    x_init_raw = res_block_initial(x_init_raw, [high_resolution_feature_channels[3]], 5, [1, 1], "output_convbbb2")
     x_init_raw = conv_block(x_init_raw, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
                             use_bn=use_bn, use_bias=use_bias,
                             use_dropout=use_dropout, drop_value=0.0,
@@ -189,12 +190,104 @@ def get_discriminator_model_v1(high_resolution_fields_size,
     return d_model
 
 
-def res_linear_activation_v2(input_size, resize_output, num_filters, kernel_size, num_channels, num_classes, resize=True,
+def get_discriminator_model_v1(high_resolution_fields_size,
+                            low_resolution_fields_size, use_bn=False,
+                            use_dropout=False, use_bias=True, low_resolution_feature_channels=(32, 64, 128),
+                            low_resolution_dense_neurons =6,
+                            high_resolution_feature_channels=(16, 32, 64, 128)):
+    """
+    Discriminator no longer uses the unet model to demonstrate realism
+    **Purpose:**
+      * To create a discriminator model that takes two streams of inputs, one from the low resolution predictor fields(X)
+      and auxilary inputs (topography), it also takes in the high-resolution "regression prediction",
+      which is used for residuals
+
+    **Parameters:**
+      * **high_resolution_fields_size (tuple):**  The size of the 2D high-resolution RCM fields, over the NZ region this (172, 179)
+      * **low_resolution_fields_size (tuple):**  The size of the 2D low-resolution predictor fields (23, 26) over the New Zealand domain
+      * **use_bn (bool, optional):** whether to use batchnormalization or not (default no bn)
+      * **use_dropout (bool, optional):** whether to use dropout or not(default no dropout)
+      * **use_bias (bool, optional):** whether to use bias or not (default bias =True)
+
+    **Returns:**
+        * a tf.keras.models.Model class
+
+    **Example Usage:**
+    ```python
+    discriminator_model = get_discriminator_model((172, 179), (23, 26))
+    ```
+    """
+    IMG_SHAPE = high_resolution_fields_size
+    IMG_SHAPE2 = low_resolution_fields_size
+
+    img_input = layers.Input(shape=IMG_SHAPE) # real or fake predictions
+    img_input2 = layers.Input(shape=IMG_SHAPE2) # boundary conditions or predictor fields
+
+    # these are static inputs to the model
+    img_input3 = layers.Input(shape=IMG_SHAPE) # Topography predictor variable
+    img_input4 = layers.Input(shape=IMG_SHAPE) # other CCAM auxilary variables if used
+    img_input5 = layers.Input(shape=IMG_SHAPE)
+    img_input6 = layers.Input(shape=IMG_SHAPE) # UNET regressoin predictor.
+    # now we concatenate these input a single vector
+    # high-resolution data stream
+    # first we put "real or fake data" with 32 channels, to allow it to be more important
+    inputs_high_res = res_block_initial(img_input, [high_resolution_feature_channels[0]], 3, [1, 1], "output_convbbb")
+    x = conv_block(inputs_high_res, high_resolution_feature_channels[1], kernel_size=(3, 3), strides=(2, 2),
+                   use_bn=use_bn, use_bias=use_bias,
+                   use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+
+    x = conv_block(x, high_resolution_feature_channels[2], kernel_size=(3, 3), strides=(2, 2),
+                   use_bn=use_bn, use_bias=use_bias,
+                   use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+    # reducing the dimensionality to speed up the computational cost
+    # x = tf.keras.layers.AveragePooling2D((3,3))(x)
+
+    x_init_raw = conv_block(x, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
+                            use_bn=use_bn, use_bias=use_bias,
+                            use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+#     images_low_res = conv_block(img_input2, high_resolution_feature_channels[0], kernel_size=(3, 3), strides=(1, 1),
+#                             use_bn=use_bn, use_bias=use_bias,
+#                             use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+#     images_low_res = conv_block(images_low_res, high_resolution_feature_channels[1], kernel_size=(3, 3), strides=(1, 1),
+#                             use_bn=use_bn, use_bias=use_bias,
+#                             use_dropout=use_dropout, drop_value=0.0, activation=tf.keras.layers.LeakyReLU())
+#     images_low_res = tf.image.resize(images_low_res, [x_init_raw.shape[1], x_init_raw.shape[2]],
+#                     method=tf.image.ResizeMethod.BILINEAR)
+    concat_outputs = x_init_raw#tf.keras.layers.Concatenate(-1)([x_init_raw, images_low_res])
+    concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb1")
+    #concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb2")
+    #concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb3")
+    #concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb4")
+    #concat_outputs = res_block_initial(concat_outputs, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb5")
+    x_init_raw = conv_block(concat_outputs, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
+                            use_bn=use_bn, use_bias=use_bias,
+                            use_dropout=use_dropout, drop_value=0.0,
+                            activation=tf.keras.layers.LeakyReLU(0.1))
+    x_init_raw = res_block_initial(x_init_raw, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb21a")
+    x_init_raw = res_block_initial(x_init_raw, [high_resolution_feature_channels[3]], 3, [1, 1], "output_convbbb22a")
+    x_init_raw = res_block_initial(x_init_raw, [high_resolution_feature_channels[3]], 5, [1, 1], "output_convbbb23a")
+    x_init_raw = conv_block(x_init_raw, high_resolution_feature_channels[3], kernel_size=(3, 3), strides=(2, 2),
+                            use_bn=use_bn, use_bias=use_bias,
+                            use_dropout=use_dropout, drop_value=0.0,
+                            activation=tf.keras.layers.LeakyReLU(0.1))
+    x_init_raw = conv_block(x_init_raw, high_resolution_feature_channels[3]*2, kernel_size=(3, 3), strides=(2, 2),
+                            use_bn=use_bn, use_bias=use_bias,
+                            use_dropout=use_dropout, drop_value=0.0,
+                            activation=tf.keras.layers.LeakyReLU(0.1))
+    flattened_output = tf.keras.layers.Flatten()(x_init_raw)
+    dense2 = tf.keras.layers.Dense(256)(flattened_output)
+
+    x = layers.Dense(1)(dense2)
+
+    d_model = keras.models.Model([img_input, img_input2, img_input3, img_input6], x,
+                                 name="discriminator")
+    return d_model
+
+def res_linear_activation_v2_noise(input_size, resize_output, num_filters, kernel_size, num_channels, num_classes, resize=True,
                           final_activation = tf.keras.layers.LeakyReLU(1)):
+    """new model has two layers of noise, and does not feed in the unet prediction"""
 
     high_res_fields = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
-    high_res_fields2 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
-    high_res_fields3 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
     high_res_fields4 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
 
     concat_image = tf.keras.layers.Concatenate(-1)([high_res_fields,  high_res_fields4])
@@ -204,30 +297,80 @@ def res_linear_activation_v2(input_size, resize_output, num_filters, kernel_size
     low_res = tf.keras.layers.Input(shape =[input_size[0], input_size[1], num_channels])
     noise = tf.keras.layers.Input(shape=[input_size[0], input_size[1], num_channels])
     inputs_abstract = tf.keras.layers.Concatenate(-1)([low_res, noise])
-    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=3, i =0)
-    x, temp2 = down_block(x, num_filters[1], kernel_size=3, i =1)
-    x, temp3 = down_block(x, num_filters[2], kernel_size=3, i =2)
-    x1 = down_block(inputs_abstract, num_filters[2], kernel_size=3, i=4, use_pool=False)
+    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=3, i =0, sym_padding=False)
+    x, temp2 = down_block(x, num_filters[1], kernel_size=3, i =1, sym_padding=False)
+    x, temp3 = down_block(x, num_filters[2], kernel_size=3, i =2, sym_padding=False)
+    x1 = down_block(inputs_abstract, num_filters[0], kernel_size=3, i=4, use_pool=False, sym_padding=False)
+    x1 = down_block(x1, num_filters[1], kernel_size=3, i=5, use_pool=False, sym_padding=False)
+    #x1 = tf.keras.layers.AveragePooling2D((2,2))(x1)
+    x1 = tf.image.resize(x1, [int(x.shape[1]), int(x.shape[2])],
+                    method=tf.image.ResizeMethod.BILINEAR)
+    x1 = res_block_initial(x1, [num_filters[2]], 3, [1, 1], f"noise_blockcccc", sym_padding=True)
+    x1 = res_block_initial(x1, [num_filters[2]], 3, [1, 1], f"noise_blockcccec", sym_padding=True)
+    x = tf.keras.layers.Concatenate(-1)([x1, x])
+    x = res_block_initial(x, [num_filters[3]], 3, [1, 1], f"noise_blockceerere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[3]], 5, [1, 1], f"noise_blockderere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[3]*2], 3, [1, 1], f"noise_blockererere", sym_padding=True)
+    # decode
+    x = up_block(x, temp3, kernel_size=3, filters = num_filters[3], i =0, sym_padding=False)
+    noise2 = tf.keras.layers.Input(shape=[x.shape[1], x.shape[2], int(num_channels//2)])
+    x = tf.keras.layers.Concatenate(-1)([noise2, x])
+    x = up_block(x, temp2, kernel_size=5, filters = num_filters[2], i =2, sym_padding=False)
+
+    x = up_block(x, temp1, kernel_size=3, filters = num_filters[1], i =3, sym_padding=False)
+    output = tf.image.resize(x, (resize_output[0], resize_output[1]),
+                    method=tf.image.ResizeMethod.BILINEAR)
+    output = res_block_initial(output, [num_filters[1]], 3, [1, 1], f"chur", sym_padding=True)
+    output = res_block_initial(output, [num_filters[1]], 3, [1, 1], "output_convbbb123456", sym_padding=False)
+    output = res_block_initial(output, [num_filters[0]], 5, [1, 1], "output_convbbb1234", sym_padding=False)
+    output = tf.keras.layers.Conv2D(32, 3, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(16, 3, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(num_classes, 3, activation=final_activation, padding ='same')(output)
+    input_layers = [noise, noise2] + [low_res, high_res_fields,  high_res_fields4]
+    model = tf.keras.models.Model(input_layers, output, name='unet')
+    model.summary()
+    return model
+
+def res_linear_activation_v2(input_size, resize_output, num_filters, kernel_size, num_channels, num_classes, resize=True,
+                          final_activation = tf.keras.layers.LeakyReLU(1)):
+
+    high_res_fields = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
+    high_res_fields4 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
+
+    concat_image = tf.keras.layers.Concatenate(-1)([high_res_fields,  high_res_fields4])
+    concatted_highres = tf.image.resize(concat_image, [int(np.ceil(resize_output[0]/8) * 8), int(np.ceil(resize_output[1]/8)) * 8],
+                    method=tf.image.ResizeMethod.BILINEAR)
+
+    low_res = tf.keras.layers.Input(shape =[input_size[0], input_size[1], num_channels])
+    noise = tf.keras.layers.Input(shape=[input_size[0], input_size[1], num_channels])
+    inputs_abstract = tf.keras.layers.Concatenate(-1)([low_res, noise])
+    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=3, i =0, sym_padding=False)
+    x, temp2 = down_block(x, num_filters[1], kernel_size=3, i =1, sym_padding=False)
+    x, temp3 = down_block(x, num_filters[2], kernel_size=3, i =2, sym_padding=False)
+    x1 = down_block(inputs_abstract, num_filters[2], kernel_size=3, i=4, use_pool=False, sym_padding=False)
+    x1 = down_block(x1, num_filters[2]*2, kernel_size=3, i=5, use_pool=False, sym_padding=False)
     x1 = tf.keras.layers.AveragePooling2D((2,2))(x1)
     x1 = tf.image.resize(x1, [int(x.shape[1]), int(x.shape[2])],
                     method=tf.image.ResizeMethod.BILINEAR)
+    x1 = res_block_initial(x1, [16], 3, [1, 1], f"noise_blockcccc", sym_padding=True)
+    x1 = res_block_initial(x1, [16], 3, [1, 1], f"noise_blockcccec", sym_padding=True)
     x = tf.keras.layers.Concatenate(-1)([x1, x])
+    x = res_block_initial(x, [num_filters[2]], 3, [1, 1], f"noise_blockceerere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[2]], 3, [1, 1], f"noise_blockderere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[2]], 3, [1, 1], f"noise_blockererere", sym_padding=True)
     # decode
-    x = up_block(x, temp3, kernel_size=3, filters = num_filters[2], i =0)
-    x = up_block(x, temp2, kernel_size=3, filters = num_filters[1], i =2)
-    x = up_block(x, temp1, kernel_size=3, filters = num_filters[0], i =3)
+    x = up_block(x, temp3, kernel_size=5, filters = num_filters[2], i =0, sym_padding=False)
+    x = up_block(x, temp2, kernel_size=5, filters = num_filters[1], i =2, sym_padding=False)
+    x = up_block(x, temp1, kernel_size=3, filters = num_filters[0], i =3, sym_padding=False)
     output = tf.image.resize(x, (resize_output[0], resize_output[1]),
                     method=tf.image.ResizeMethod.BILINEAR)
-    output = res_block_initial(output, [64], 3, [1, 1], "output_convbbb123456", sym_padding=True)
-    output = res_block_initial(output, [32], 3, [1, 1], "output_convbbb1234", sym_padding=True)
-    output = SymmetricPadding2D(padding=[1, 1])(output)
-    output = tf.keras.layers.Conv2D(32, 3, activation=final_activation, padding ='valid')(output)
-    output = SymmetricPadding2D(padding=[1, 1])(output)
-    output = tf.keras.layers.Conv2D(16, 3, activation=final_activation, padding ='valid')(output)
-    output = tf.keras.layers.Conv2D(num_classes, 1, activation=final_activation, padding ='valid')(output)
-    output = tf.image.resize(output, (resize_output[0], resize_output[1]),
-                    method=tf.image.ResizeMethod.BILINEAR)
-    input_layers = [noise] + [low_res, high_res_fields, high_res_fields2,high_res_fields3, high_res_fields4]
+    output = res_block_initial(output, [256], 3, [1, 1], f"chur", sym_padding=True)
+    output = res_block_initial(output, [64], 3, [1, 1], "output_convbbb123456", sym_padding=False)
+    output = res_block_initial(output, [32], 5, [1, 1], "output_convbbb1234", sym_padding=False)
+    output = tf.keras.layers.Conv2D(32, 3, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(16, 5, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(num_classes, 5, activation=final_activation, padding ='same')(output)
+    input_layers = [noise] + [low_res, high_res_fields,  high_res_fields4]
     model = tf.keras.models.Model(input_layers, output, name='unet')
     model.summary()
     return model
@@ -335,40 +478,42 @@ def unet_linear_v2(input_size, resize_output, num_filters, kernel_size, num_chan
     """have modified the architecture with a new concatenation layer"""
 
     high_res_fields = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
-    high_res_fields2 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
-    high_res_fields3 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1])
 
     concat_image = high_res_fields#tf.keras.layers.Concatenate(-1)([high_res_fields, high_res_fields2,high_res_fields3])
     concatted_highres = tf.image.resize(concat_image, [int(np.ceil(resize_output[0]/8) * 8), int(np.ceil(resize_output[1]/8)) * 8],
                     method=tf.image.ResizeMethod.BILINEAR)
 
     low_res = tf.keras.layers.Input(shape =[input_size[0], input_size[1], num_channels])
-    noise = tf.keras.layers.Input(shape=[input_size[0], input_size[1], num_channels])
+    #noise = tf.keras.layers.Input(shape=[input_size[0], input_size[1], num_channels])
     inputs_abstract = low_res#tf.keras.layers.Concatenate(-1)([low_res, noise])
-    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=5, i =0)
-    x, temp2 = down_block(x, num_filters[1], kernel_size=5, i =1)
-    x, temp3 = down_block(x, num_filters[2], kernel_size=5, i =2)
-    x1 = down_block(inputs_abstract, num_filters[2], kernel_size=3, i=4, use_pool=False)
+    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=3, i =0, sym_padding=False)
+    x, temp2 = down_block(x, num_filters[1], kernel_size=5, i =1, sym_padding=False)
+    x, temp3 = down_block(x, num_filters[2], kernel_size=5, i =2, sym_padding=False)
+    x1 = down_block(inputs_abstract, num_filters[2], kernel_size=5, i=4, use_pool=False, sym_padding=False)
+    x1 = down_block(x1, num_filters[2]*2, kernel_size=3, i=5, use_pool=False, sym_padding=False)
     x1 = tf.keras.layers.AveragePooling2D((2,2))(x1)
     x1 = tf.image.resize(x1, [int(x.shape[1]), int(x.shape[2])],
                     method=tf.image.ResizeMethod.BILINEAR)
+    x1 = res_block_initial(x1, [64], 3, [1, 1], f"test1", sym_padding=False)
+    x1 = res_block_initial(x1, [128], 5, [1, 1], f"test2", sym_padding=False)
+    #o#utput = res_block_initial(output, [32], 5, [1, 1], f"output_{name}_3", sym_padding=False)
     x = tf.keras.layers.Concatenate(-1)([x1, x])
+    x = res_block_initial(x, [256], 3, [1, 1], f"test3", sym_padding=False)
     # decode
-    x = up_block(x, temp3, kernel_size=5, filters = num_filters[2], i =0, concat = False)
-    x = up_block(x, temp2, kernel_size=5, filters = num_filters[1], i =2, concat = False)
-    x = up_block(x, temp1, kernel_size=5, filters = num_filters[0], i =3, concat = False)
+    x = up_block(x, temp3, kernel_size=5, filters = num_filters[2], i =0, concat = False, sym_padding=False)
+    x = up_block(x, temp2, kernel_size=5, filters = num_filters[1], i =2, concat = False, sym_padding=False)
+    x = up_block(x, temp1, kernel_size=3, filters = num_filters[0], i =3, concat = False, sym_padding=False)
     output = tf.image.resize(x, (resize_output[0], resize_output[1]),
                     method=tf.image.ResizeMethod.BILINEAR)
-    output = res_block_initial(output, [64], 3, [1, 1], "output_convbbb1234567", sym_padding=True)
-    output = res_block_initial(output, [32], 3, [1, 1], "output_convbbb12347", sym_padding=True)
+    output = res_block_initial(output, [256], 3, [1, 1], "output_convbbb1234567", sym_padding=False)
+    output = res_block_initial(output, [32], 5, [1, 1], "output_convbbb12347", sym_padding=False)
     output = SymmetricPadding2D(padding=[1, 1])(output)
     output = tf.keras.layers.Conv2D(32, 3, activation=final_activation, padding ='valid')(output)
     output = SymmetricPadding2D(padding=[1, 1])(output)
     output = tf.keras.layers.Conv2D(16, 3, activation=final_activation, padding ='valid')(output)
     output = tf.keras.layers.Conv2D(num_classes, 1, activation=final_activation, padding ='valid')(output)
-    output = tf.image.resize(output, (resize_output[0], resize_output[1]),
-                    method=tf.image.ResizeMethod.BILINEAR)
-    input_layers = [noise] + [low_res, high_res_fields, high_res_fields2,high_res_fields3]
+
+    input_layers =  [low_res, high_res_fields]
     model = tf.keras.models.Model(input_layers, output, name='unet')
     model.summary()
     return model
