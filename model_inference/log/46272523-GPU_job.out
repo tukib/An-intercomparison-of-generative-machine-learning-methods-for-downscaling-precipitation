@@ -1,0 +1,114 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) XALT/minimal   2) slurm   3) NeSI
+Lmod has detected the following error: The following module(s) are unknown:
+"gcc/9.3.0"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "gcc/9.3.0"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+Mon Oct 21 10:29:12 2024       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.104.05             Driver Version: 535.104.05   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  | 00000000:01:00.0 Off |                    0 |
+| N/A   29C    P0              69W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  | 00000000:41:00.0 Off |                    0 |
+| N/A   28C    P0              56W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   2  NVIDIA A100-SXM4-80GB          On  | 00000000:81:00.0 Off |                    0 |
+| N/A   29C    P0              56W / 500W |      4MiB / 81920MiB |      0%      Default |
+|                                         |                      |             Disabled |
++-----------------------------------------+----------------------+----------------------+
+|   3  NVIDIA A100-SXM4-80GB          On  | 00000000:C1:00.0 Off |                   On |
+| N/A   28C    P0              50W / 500W |     87MiB / 81920MiB |     N/A      Default |
+|                                         |                      |              Enabled |
++-----------------------------------------+----------------------+----------------------+
+
++---------------------------------------------------------------------------------------+
+| MIG devices:                                                                          |
++------------------+--------------------------------+-----------+-----------------------+
+| GPU  GI  CI  MIG |                   Memory-Usage |        Vol|      Shared           |
+|      ID  ID  Dev |                     BAR1-Usage | SM     Unc| CE ENC DEC OFA JPG    |
+|                  |                                |        ECC|                       |
+|==================+================================+===========+=======================|
+|  3    7   0   0  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3    8   0   1  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3    9   0   2  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3   10   0   3  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3   11   0   4  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3   12   0   5  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+|  3   13   0   6  |              12MiB /  9728MiB  | 14      0 |  1   0    0    0    0 |
+|                  |               0MiB / 16383MiB  |           |                       |
++------------------+--------------------------------+-----------+-----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+2024-10-21 10:29:15.544818: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudart.so.11.0
+2024-10-21 10:29:21.771505: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcuda.so.1
+2024-10-21 10:29:21.901796: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1733] Found device 0 with properties: 
+pciBusID: 0000:01:00.0 name: NVIDIA A100-SXM4-80GB computeCapability: 8.0
+coreClock: 1.41GHz coreCount: 108 deviceMemorySize: 79.15GiB deviceMemoryBandwidth: 1.85TiB/s
+2024-10-21 10:29:21.901845: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudart.so.11.0
+2024-10-21 10:29:22.419950: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcublas.so.11
+2024-10-21 10:29:22.419998: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcublasLt.so.11
+2024-10-21 10:29:22.576270: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcufft.so.10
+2024-10-21 10:29:22.710240: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcurand.so.10
+2024-10-21 10:29:23.171488: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcusolver.so.11
+2024-10-21 10:29:23.280996: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcusparse.so.11
+2024-10-21 10:29:23.293738: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudnn.so.8
+2024-10-21 10:29:23.296740: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1871] Adding visible gpu devices: 0
+2024-10-21 10:29:23.297098: I tensorflow/core/platform/cpu_feature_guard.cc:142] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-10-21 10:29:23.298664: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1733] Found device 0 with properties: 
+pciBusID: 0000:01:00.0 name: NVIDIA A100-SXM4-80GB computeCapability: 8.0
+coreClock: 1.41GHz coreCount: 108 deviceMemorySize: 79.15GiB deviceMemoryBandwidth: 1.85TiB/s
+2024-10-21 10:29:23.301301: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1871] Adding visible gpu devices: 0
+2024-10-21 10:29:23.301348: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudart.so.11.0
+2024-10-21 10:29:26.528047: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1258] Device interconnect StreamExecutor with strength 1 edge matrix:
+2024-10-21 10:29:26.528089: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1264]      0 
+2024-10-21 10:29:26.528097: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1277] 0:   N 
+2024-10-21 10:29:26.532827: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1418] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 78936 MB memory) -> physical GPU (device: 0, name: NVIDIA A100-SXM4-80GB, pci bus id: 0000:01:00.0, compute capability: 8.0)
+<xarray.DataArray 'orog' ()>
+array(1733.3604, dtype=float32) <xarray.DataArray 'he' ()>
+array(1157.4626, dtype=float32) <xarray.DataArray 'vegt' ()>
+array(17.000008, dtype=float32)
+prepraring data fpr a GCM ACCESS-CM2
+Predicting:   0%|          | 0/171 [00:00<?, ?batch/s]2024-10-21 10:29:28.209833: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:176] None of the MLIR Optimization Passes are enabled (registered 2)
+2024-10-21 10:29:28.224266: I tensorflow/core/platform/profile_utils/cpu_utils.cc:114] CPU Frequency: 3194120000 Hz
+2024-10-21 10:29:28.311861: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcudnn.so.8
+2024-10-21 10:29:31.996360: I tensorflow/stream_executor/cuda/cuda_dnn.cc:359] Loaded cuDNN version 8101
+2024-10-21 10:29:37.258836: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcublas.so.11
+2024-10-21 10:29:40.136273: I tensorflow/stream_executor/platform/default/dso_loader.cc:53] Successfully opened dynamic library libcublasLt.so.11
+Predicting:   1%|          | 1/171 [00:14<41:15, 14.56s/batch]Predicting:   1%|          | 2/171 [00:14<17:12,  6.11s/batch]Predicting:   2%|▏         | 3/171 [00:14<09:31,  3.40s/batch]Predicting:   2%|▏         | 4/171 [00:15<05:56,  2.13s/batch]Predicting:   3%|▎         | 5/171 [00:15<03:57,  1.43s/batch]Predicting:   4%|▎         | 6/171 [00:15<02:46,  1.01s/batch]Predicting:   4%|▍         | 7/171 [00:15<02:00,  1.36batch/s]Predicting:   5%|▍         | 8/171 [00:15<01:31,  1.77batch/s]Predicting:   5%|▌         | 9/171 [00:16<01:21,  1.98batch/s]Predicting:   6%|▌         | 10/171 [00:16<01:05,  2.47batch/s]Predicting:   6%|▋         | 11/171 [00:16<00:54,  2.94batch/s]Predicting:   7%|▋         | 12/171 [00:16<00:46,  3.42batch/s]Predicting:   8%|▊         | 13/171 [00:16<00:40,  3.86batch/s]Predicting:   8%|▊         | 14/171 [00:17<00:37,  4.24batch/s]Predicting:   9%|▉         | 15/171 [00:17<00:34,  4.49batch/s]Predicting:   9%|▉         | 16/171 [00:17<00:32,  4.75batch/s]Predicting:  10%|▉         | 17/171 [00:17<00:31,  4.96batch/s]Predicting:  11%|█         | 18/171 [00:18<00:44,  3.40batch/s]Predicting:  11%|█         | 19/171 [00:18<00:39,  3.84batch/s]Predicting:  12%|█▏        | 20/171 [00:18<00:35,  4.22batch/s]Predicting:  12%|█▏        | 21/171 [00:18<00:33,  4.47batch/s]Predicting:  13%|█▎        | 22/171 [00:18<00:31,  4.73batch/s]Predicting:  13%|█▎        | 23/171 [00:19<00:29,  4.94batch/s]Predicting:  14%|█▍        | 24/171 [00:19<00:29,  5.02batch/s]Predicting:  15%|█▍        | 25/171 [00:19<00:28,  5.14batch/s]Predicting:  15%|█▌        | 26/171 [00:19<00:27,  5.24batch/s]Predicting:  16%|█▌        | 27/171 [00:19<00:27,  5.31batch/s]Predicting:  16%|█▋        | 28/171 [00:20<00:27,  5.27batch/s]Predicting:  17%|█▋        | 29/171 [00:20<00:26,  5.33batch/s]Predicting:  18%|█▊        | 30/171 [00:20<00:46,  3.05batch/s]Predicting:  18%|█▊        | 31/171 [00:21<00:40,  3.48batch/s]Predicting:  19%|█▊        | 32/171 [00:21<00:35,  3.91batch/s]Predicting:  19%|█▉        | 33/171 [00:21<00:32,  4.27batch/s]Predicting:  20%|█▉        | 34/171 [00:21<00:30,  4.52batch/s]Predicting:  20%|██        | 35/171 [00:21<00:28,  4.77batch/s]Predicting:  21%|██        | 36/171 [00:22<00:27,  4.96batch/s]Predicting:  22%|██▏       | 37/171 [00:22<00:26,  5.04batch/s]Predicting:  22%|██▏       | 38/171 [00:22<00:25,  5.16batch/s]Predicting:  23%|██▎       | 39/171 [00:22<00:25,  5.25batch/s]Predicting:  23%|██▎       | 40/171 [00:22<00:24,  5.24batch/s]Predicting:  24%|██▍       | 41/171 [00:22<00:24,  5.31batch/s]Predicting:  25%|██▍       | 42/171 [00:23<00:24,  5.36batch/s]Predicting:  25%|██▌       | 43/171 [00:23<00:23,  5.39batch/s]Predicting:  26%|██▌       | 44/171 [00:24<00:48,  2.60batch/s]Predicting:  26%|██▋       | 45/171 [00:24<00:40,  3.09batch/s]Predicting:  27%|██▋       | 46/171 [00:24<00:35,  3.55batch/s]Predicting:  27%|██▋       | 47/171 [00:24<00:31,  3.93batch/s]Predicting:  28%|██▊       | 48/171 [00:24<00:28,  4.30batch/s]Predicting:  29%|██▊       | 49/171 [00:25<00:26,  4.60batch/s]Predicting:  29%|██▉       | 50/171 [00:25<00:25,  4.77batch/s]Predicting:  30%|██▉       | 51/171 [00:25<00:24,  4.96batch/s]Predicting:  30%|███       | 52/171 [00:25<00:23,  5.10batch/s]Predicting:  31%|███       | 53/171 [00:25<00:22,  5.14batch/s]Predicting:  32%|███▏      | 54/171 [00:26<00:22,  5.24batch/s]Predicting:  32%|███▏      | 55/171 [00:26<00:21,  5.31batch/s]Predicting:  33%|███▎      | 56/171 [00:26<00:21,  5.29batch/s]Predicting:  33%|███▎      | 57/171 [00:26<00:21,  5.33batch/s]Predicting:  34%|███▍      | 58/171 [00:26<00:21,  5.38batch/s]Predicting:  35%|███▍      | 59/171 [00:26<00:20,  5.41batch/s]Predicting:  35%|███▌      | 60/171 [00:27<00:20,  5.36batch/s]Predicting:  36%|███▌      | 61/171 [00:27<00:20,  5.39batch/s]Predicting:  36%|███▋      | 62/171 [00:27<00:20,  5.42batch/s]Predicting:  37%|███▋      | 63/171 [00:28<00:49,  2.20batch/s]Predicting:  37%|███▋      | 64/171 [00:28<00:39,  2.68batch/s]Predicting:  38%|███▊      | 65/171 [00:28<00:33,  3.16batch/s]Predicting:  39%|███▊      | 66/171 [00:29<00:29,  3.58batch/s]Predicting:  39%|███▉      | 67/171 [00:29<00:26,  4.00batch/s]Predicting:  40%|███▉      | 68/171 [00:29<00:23,  4.35batch/s]Predicting:  40%|████      | 69/171 [00:29<00:22,  4.58batch/s]Predicting:  41%|████      | 70/171 [00:29<00:20,  4.82batch/s]Predicting:  42%|████▏     | 71/171 [00:30<00:20,  5.00batch/s]Predicting:  42%|████▏     | 72/171 [00:30<00:19,  5.13batch/s]Predicting:  43%|████▎     | 73/171 [00:30<00:18,  5.16batch/s]Predicting:  43%|████▎     | 74/171 [00:30<00:18,  5.25batch/s]Predicting:  44%|████▍     | 75/171 [00:30<00:18,  5.32batch/s]Predicting:  44%|████▍     | 76/171 [00:31<00:18,  5.27batch/s]Predicting:  45%|████▌     | 77/171 [00:31<00:17,  5.34batch/s]Predicting:  46%|████▌     | 78/171 [00:31<00:17,  5.38batch/s]Predicting:  46%|████▌     | 79/171 [00:31<00:17,  5.33batch/s]Predicting:  47%|████▋     | 80/171 [00:31<00:16,  5.37batch/s]Predicting:  47%|████▋     | 81/171 [00:31<00:16,  5.41batch/s]Predicting:  48%|████▊     | 82/171 [00:32<00:16,  5.35batch/s]Predicting:  49%|████▊     | 83/171 [00:32<00:16,  5.39batch/s]Predicting:  49%|████▉     | 84/171 [00:32<00:16,  5.42batch/s]Predicting:  50%|████▉     | 85/171 [00:33<00:47,  1.82batch/s]Predicting:  50%|█████     | 86/171 [00:34<00:37,  2.28batch/s]Predicting:  51%|█████     | 87/171 [00:34<00:30,  2.77batch/s]Predicting:  51%|█████▏    | 88/171 [00:34<00:25,  3.25batch/s]Predicting:  52%|█████▏    | 89/171 [00:34<00:22,  3.67batch/s]Predicting:  53%|█████▎    | 90/171 [00:34<00:19,  4.08batch/s]Predicting:  53%|█████▎    | 91/171 [00:34<00:18,  4.42batch/s]Predicting:  54%|█████▍    | 92/171 [00:35<00:17,  4.63batch/s]Predicting:  54%|█████▍    | 93/171 [00:35<00:16,  4.86batch/s]Predicting:  55%|█████▍    | 94/171 [00:35<00:15,  5.03batch/s]Predicting:  56%|█████▌    | 95/171 [00:35<00:14,  5.10batch/s]Predicting:  56%|█████▌    | 96/171 [00:35<00:14,  5.21batch/s]Predicting:  57%|█████▋    | 97/171 [00:36<00:14,  5.28batch/s]Predicting:  57%|█████▋    | 98/171 [00:36<00:13,  5.26batch/s]Predicting:  58%|█████▊    | 99/171 [00:36<00:13,  5.32batch/s]Predicting:  58%|█████▊    | 100/171 [00:36<00:13,  5.37batch/s]Predicting:  59%|█████▉    | 101/171 [00:36<00:13,  5.33batch/s]Predicting:  60%|█████▉    | 102/171 [00:37<00:12,  5.38batch/s]Predicting:  60%|██████    | 103/171 [00:37<00:12,  5.41batch/s]Predicting:  61%|██████    | 104/171 [00:37<00:12,  5.36batch/s]Predicting:  61%|██████▏   | 105/171 [00:37<00:12,  5.39batch/s]Predicting:  62%|██████▏   | 106/171 [00:37<00:11,  5.42batch/s]Predicting:  63%|██████▎   | 107/171 [00:37<00:11,  5.45batch/s]Predicting:  63%|██████▎   | 108/171 [00:38<00:11,  5.38batch/s]Predicting:  64%|██████▎   | 109/171 [00:38<00:11,  5.41batch/s]Predicting:  64%|██████▍   | 110/171 [00:38<00:11,  5.43batch/s]Predicting:  65%|██████▍   | 111/171 [00:38<00:11,  5.37batch/s]Predicting:  65%|██████▌   | 112/171 [00:38<00:10,  5.40batch/s]Predicting:  66%|██████▌   | 113/171 [00:39<00:10,  5.42batch/s]Predicting:  67%|██████▋   | 114/171 [00:40<00:37,  1.52batch/s]Predicting:  67%|██████▋   | 115/171 [00:41<00:28,  1.94batch/s]Predicting:  68%|██████▊   | 116/171 [00:41<00:22,  2.41batch/s]Predicting:  68%|██████▊   | 117/171 [00:41<00:18,  2.87batch/s]Predicting:  69%|██████▉   | 118/171 [00:41<00:15,  3.34batch/s]Predicting:  70%|██████▉   | 119/171 [00:41<00:13,  3.78batch/s]Predicting:  70%|███████   | 120/171 [00:41<00:12,  4.13batch/s]Predicting:  71%|███████   | 121/171 [00:42<00:11,  4.46batch/s]Predicting:  71%|███████▏  | 122/171 [00:42<00:10,  4.73batch/s]Predicting:  72%|███████▏  | 123/171 [00:42<00:09,  4.93batch/s]Predicting:  73%|███████▎  | 124/171 [00:42<00:09,  5.01batch/s]Predicting:  73%|███████▎  | 125/171 [00:42<00:08,  5.15batch/s]Predicting:  74%|███████▎  | 126/171 [00:43<00:08,  5.25batch/s]Predicting:  74%|███████▍  | 127/171 [00:43<00:08,  5.24batch/s]Predicting:  75%|███████▍  | 128/171 [00:43<00:08,  5.31batch/s]Predicting:  75%|███████▌  | 129/171 [00:43<00:07,  5.36batch/s]Predicting:  76%|███████▌  | 130/171 [00:43<00:07,  5.32batch/s]Predicting:  77%|███████▋  | 131/171 [00:43<00:07,  5.37batch/s]Predicting:  77%|███████▋  | 132/171 [00:44<00:07,  5.41batch/s]Predicting:  78%|███████▊  | 133/171 [00:44<00:07,  5.35batch/s]Predicting:  78%|███████▊  | 134/171 [00:44<00:06,  5.39batch/s]Predicting:  79%|███████▉  | 135/171 [00:44<00:06,  5.42batch/s]Predicting:  80%|███████▉  | 136/171 [00:44<00:06,  5.36batch/s]Predicting:  80%|████████  | 137/171 [00:45<00:06,  5.40batch/s]Predicting:  81%|████████  | 138/171 [00:45<00:06,  5.42batch/s]Predicting:  81%|████████▏ | 139/171 [00:45<00:05,  5.37batch/s]Predicting:  82%|████████▏ | 140/171 [00:45<00:05,  5.41batch/s]Predicting:  82%|████████▏ | 141/171 [00:45<00:05,  5.44batch/s]Predicting:  83%|████████▎ | 142/171 [00:45<00:05,  5.45batch/s]Predicting:  84%|████████▎ | 143/171 [00:46<00:05,  5.38batch/s]Predicting:  84%|████████▍ | 144/171 [00:46<00:04,  5.41batch/s]Predicting:  85%|████████▍ | 145/171 [00:46<00:04,  5.43batch/s]Predicting:  85%|████████▌ | 146/171 [00:46<00:04,  5.37batch/s]slurmstepd: error: *** JOB 46272523 ON wmg102 CANCELLED AT 2024-10-20T17:30:14 ***
