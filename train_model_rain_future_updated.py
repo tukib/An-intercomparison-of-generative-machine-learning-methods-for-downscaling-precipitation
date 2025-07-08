@@ -15,8 +15,10 @@ import pandas as pd
 import tensorflow.keras.layers as layers
 import json
 from tensorflow.keras.optimizers import Adam
-from tensorflow.distribute import MirroredStrategy
+from tensorflow._api.v2.distribute import MirroredStrategy
 from tensorflow.keras import layers
+import datetime
+
 
 config_file = sys.argv[-1]  # configuratoin file for training algorithm
 pretrained_unet = False  # set this as true if you want to use the same U-Net or a specific unet everytime.
@@ -150,7 +152,7 @@ with strategy.scope():
 
     # Start training the model.
     # we normalize by a fixed normalization value
-    total_size = stacked_X.time.size
+    total_size = stacked_X.time.size // config.get("dataset_div_factor", 1)
     BATCH_SIZE = int(BATCH_SIZE/len(gcms_for_training))
     print("bs", BATCH_SIZE)
     eval_times =(BATCH_SIZE * ((total_size//2) // BATCH_SIZE))
@@ -207,5 +209,8 @@ with strategy.scope():
     with open(f'{config["output_folder"]}/{config["model_name"]}/config_info.json', 'w') as f:
         json.dump(config, f)
 
+    log_dir = "log/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + config["model_name"]
+    tensorboard_cb = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
     wgan.fit(data, batch_size=BATCH_SIZE, epochs=config["epochs"], verbose=1, shuffle=True,
-             callbacks=[generator_checkpoint, discriminator_checkpoint, unet_checkpoint, prediction_callback])
+             callbacks=[generator_checkpoint, discriminator_checkpoint, unet_checkpoint, prediction_callback, tensorboard_cb])

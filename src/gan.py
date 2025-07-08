@@ -178,6 +178,16 @@ class WGAN_Cascaded_IP(keras.Model):
         self.average_itensity_weight = average_intensity_weight
         self.varname = varname
 
+        self.d_loss_tracker = keras.metrics.Mean(name="d_loss")
+        self.g_loss_tracker = keras.metrics.Mean(name="g_loss")
+        self.res_loss_tracker = keras.metrics.Mean(name="residual_loss")
+        self.adv_loss_tracker = keras.metrics.Mean(name="adv_loss")
+        self.u_loss_tracker = keras.metrics.Mean(name="unet_loss")
+        self.gan_mae_tracker = keras.metrics.Mean(name="gan_mae")
+        self.max_iten_pred_tracker = keras.metrics.Mean(name="max_iten_pred")
+        self.max_iten_true_tracker = keras.metrics.Mean(name="max_iten_true")
+
+
     def compile(self, d_optimizer, g_optimizer, d_loss_fn,
                 g_loss_fn, u_loss_fn, u_optimizer):
         super(WGAN_Cascaded_IP, self).compile()
@@ -422,7 +432,40 @@ class WGAN_Cascaded_IP(keras.Model):
         # Update the weights of the generator using the generator optimizer
         self.g_optimizer.apply_gradients(zip(gen_gradient, self.generator.trainable_variables))
 
-        return {"d_loss": d_loss, "g_loss": g_loss, "residual_loss": gamma_loss_func, "adv_loss": adv_loss,
-                "unet_loss": mae_unet, "gan_mae": mae, "max_iten_pred": tf.math.exp(maximum_intensity_predicted), "max_iten_true": tf.math.exp(maximum_intensity)}
 
+        self.d_loss_tracker.update_state(d_loss)
+        self.g_loss_tracker.update_state(g_loss)
+        self.res_loss_tracker.update_state(gamma_loss_func)
+        self.adv_loss_tracker.update_state(adv_loss)
+        self.u_loss_tracker.update_state(mae_unet)
+        self.gan_mae_tracker.update_state(mae)
+        self.max_iten_pred_tracker.update_state(tf.math.exp(maximum_intensity_predicted))
+        self.max_iten_true_tracker.update_state(tf.math.exp(maximum_intensity))
+
+        return {
+            "d_loss": self.d_loss_tracker.result(),
+            "g_loss": self.g_loss_tracker.result(),
+            "residual_loss": self.res_loss_tracker.result(),
+            "adv_loss": self.adv_loss_tracker.result(),
+            "unet_loss": self.u_loss_tracker.result(),
+            "gan_mae": self.gan_mae_tracker.result(),
+            "max_iten_pred": self.max_iten_pred_tracker.result(),
+            "max_iten_true": self.max_iten_true_tracker.result(),
+        }
+
+        # return {"d_loss": d_loss, "g_loss": g_loss, "residual_loss": gamma_loss_func, "adv_loss": adv_loss,
+        #         "unet_loss": mae_unet, "gan_mae": mae, "max_iten_pred": tf.math.exp(maximum_intensity_predicted), "max_iten_true": tf.math.exp(maximum_intensity)}
+
+    @property
+    def metrics(self):
+        return [
+            self.d_loss_tracker,
+            self.g_loss_tracker,
+            self.res_loss_tracker,
+            self.adv_loss_tracker,
+            self.u_loss_tracker,
+            self.gan_mae_tracker,
+            self.max_iten_pred_tracker,
+            self.max_iten_true_tracker,
+        ]
 

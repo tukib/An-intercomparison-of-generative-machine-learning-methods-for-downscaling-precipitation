@@ -560,3 +560,53 @@ def unet_linear_temp(input_size, resize_output, num_filters, kernel_size, num_ch
     model = tf.keras.models.Model(input_layers, output, name='unet')
     model.summary()
     return model
+
+def res_linear_activation_v2_noise_dm(input_size, resize_output, num_filters, kernel_size, num_channels, num_classes, resize=True,
+                          final_activation = tf.keras.layers.LeakyReLU(1)):
+    """new model has two layers of noise, and does not feed in the unet prediction"""
+
+    high_res_fields = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1]) # orog_vector
+    high_res_fields4 = tf.keras.layers.Input(shape=[resize_output[0], resize_output[1], 1]) # init_prediction
+
+    concat_image = tf.keras.layers.Concatenate(-1)([high_res_fields,  high_res_fields4])
+    concatted_highres = tf.image.resize(concat_image, [int(np.ceil(resize_output[0]/8) * 8), int(np.ceil(resize_output[1]/8)) * 8],
+                    method=tf.image.ResizeMethod.BILINEAR)
+
+    low_res = tf.keras.layers.Input(shape =[input_size[0], input_size[1], num_channels]) # average
+    noise = tf.keras.layers.Input(shape=[input_size[0], input_size[1], num_channels])
+    inputs_abstract = tf.keras.layers.Concatenate(-1)([low_res, noise])
+    x, temp1 = down_block(concatted_highres, num_filters[0], kernel_size=3, i =0, sym_padding=False)
+    x, temp2 = down_block(x, num_filters[1], kernel_size=3, i =1, sym_padding=False)
+    x, temp3 = down_block(x, num_filters[2], kernel_size=3, i =2, sym_padding=False)
+    x1 = down_block(inputs_abstract, num_filters[0], kernel_size=3, i=4, use_pool=False, sym_padding=False)
+    x1 = down_block(x1, num_filters[1], kernel_size=3, i=5, use_pool=False, sym_padding=False)
+    #x1 = tf.keras.layers.AveragePooling2D((2,2))(x1)
+    x1 = tf.image.resize(x1, [int(x.shape[1]), int(x.shape[2])],
+                    method=tf.image.ResizeMethod.BILINEAR)
+    x1 = res_block_initial(x1, [num_filters[2]], 3, [1, 1], f"noise_blockcccc", sym_padding=True)
+    x1 = res_block_initial(x1, [num_filters[2]], 3, [1, 1], f"noise_blockcccec", sym_padding=True)
+    x = tf.keras.layers.Concatenate(-1)([x1, x])
+    x = res_block_initial(x, [num_filters[3]], 3, [1, 1], f"noise_blockceerere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[3]], 5, [1, 1], f"noise_blockderere", sym_padding=True)
+    x = res_block_initial(x, [num_filters[3]*2], 3, [1, 1], f"noise_blockererere", sym_padding=True)
+    
+    # decode
+    x = up_block(x, temp3, kernel_size=3, filters = num_filters[3], i =0, sym_padding=False)
+    noise2 = tf.keras.layers.Input(shape=[x.shape[1], x.shape[2], int(num_channels//2)])
+    x = tf.keras.layers.Concatenate(-1)([noise2, x])
+    x = up_block(x, temp2, kernel_size=5, filters = num_filters[2], i =2, sym_padding=False)
+
+    x = up_block(x, temp1, kernel_size=3, filters = num_filters[1], i =3, sym_padding=False)
+    output = tf.image.resize(x, (resize_output[0], resize_output[1]),
+                    method=tf.image.ResizeMethod.BILINEAR)
+    output = res_block_initial(output, [num_filters[1]], 3, [1, 1], f"chur", sym_padding=True)
+    output = res_block_initial(output, [num_filters[1]], 3, [1, 1], "output_convbbb123456", sym_padding=False)
+    output = res_block_initial(output, [num_filters[0]], 5, [1, 1], "output_convbbb1234", sym_padding=False)
+    output = tf.keras.layers.Conv2D(32, 3, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(16, 3, activation=final_activation, padding ='same')(output)
+    output = tf.keras.layers.Conv2D(num_classes, 3, activation=final_activation, padding ='same')(output)
+    input_layers = [noise, noise2] + [low_res, high_res_fields,  high_res_fields4]
+    # [random_latent_vectors[i],random_latent_vectors1[i],   average, orog_vector, init_prediction],
+    model = tf.keras.models.Model(input_layers, output, name='unet')
+    model.summary()
+    return model

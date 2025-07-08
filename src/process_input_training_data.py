@@ -47,7 +47,7 @@ def prepare_static_fields(config):
 
 
 # LOADING the mean values
-def preprocess_input_data(config, match_index = True):
+def preprocess_input_data(config: dict, match_index = True):
     vegt, orog, he = prepare_static_fields(config)
     means = xr.open_dataset(config["mean"])
     stds = xr.open_dataset(config["std"])
@@ -57,6 +57,14 @@ def preprocess_input_data(config, match_index = True):
 
     y = xr.open_dataset(config["train_y"])#, chunks={"time": 5000})
     y['time'] = pd.to_datetime(y.time.dt.strftime("%Y-%m-%d"))# .sel(time = slice("2016", None))
+
+    # LOCAL CHANGE
+    if config.get("gcms_for_training_GAN") and config.get("output_varname"):
+        gcms = config["gcms_for_training_GAN"]
+        y = y[[config["output_varname"]]]
+        y = y.sel(GCM=gcms)
+        X = X.sel(GCM=gcms)
+
     try:
         y = y.drop("lat_bnds")
         y = y.drop("lon_bnds")
@@ -69,7 +77,7 @@ def preprocess_input_data(config, match_index = True):
 
     return stacked_X, y, vegt, orog, he
 
-def create_dataset(y, X, eval_times):
+def create_dataset(y, X, eval_times, config=None):
     output_vars = {
         'pr': tf.convert_to_tensor(y[:eval_times][::-1].values, dtype=tf.float32),
         'pr_future': tf.convert_to_tensor(y[eval_times:2 * eval_times].values, dtype=tf.float32),
