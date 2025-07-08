@@ -27,11 +27,11 @@ def res_block_initial(x, num_filters, kernel_size, strides, name, sym_padding =F
 
     if len(num_filters) == 1:
         num_filters = [num_filters[0], num_filters[0]]
-        x1 = tf.keras.layers.Conv2D(filters=num_filters[0],
-                                    kernel_size=kernel_size,
-                                    strides=strides[0],
-                                    padding='same',
-                                    name=name + '_1', kernel_initializer ='he_normal')(x)
+    x1 = tf.keras.layers.Conv2D(filters=num_filters[0],
+                                kernel_size=kernel_size,
+                                strides=strides[0],
+                                padding='same',
+                                name=name + '_1', kernel_initializer ='he_normal')(x)
 
     x1 = tf.keras.layers.LeakyReLU(0.01)(x1)
 
