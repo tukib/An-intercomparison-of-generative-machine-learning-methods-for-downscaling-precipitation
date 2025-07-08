@@ -160,9 +160,10 @@ with strategy.scope():
     options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
     data = data.with_options(options)
 
-    data = data.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    # LOCAL CHANGE moved shuffle before batch
     data = data.shuffle(16)
-    
+    data = data.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+    # data = data.shuffle(16)
     
 
     try:
