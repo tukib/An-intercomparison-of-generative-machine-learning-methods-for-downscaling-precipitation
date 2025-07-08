@@ -1,0 +1,9 @@
+/outputs/
+/outputs_down/
+/models/
+/models_down/
+
+log/
+
+__pycache__/
+.ipynb_checkpoints/
